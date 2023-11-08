@@ -1,0 +1,13 @@
+.vscode
+node_modules
+config/settings_data.json
+src
+.editorconfig
+.gitignore
+package.json
+package-lock.json
+postcss.config.js
+tailwind.config.js
+theme-check.yml
+tsconfig.json
+webpack.config.js
