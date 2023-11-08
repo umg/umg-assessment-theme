@@ -1,0 +1,27 @@
+{%- if settings.logo != blank -%}
+  {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
+  {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
+  {%- capture logo_sizes -%}
+    (max-width: {{- settings.logo_width | times: 2 -}}px) 50vw,
+    {{- settings.logo_width -}}px
+  {%- endcapture -%}
+  {%- capture logo_widths -%}
+    {{- settings.logo_width -}},
+    {{- settings.logo_width | times: 1.5 | round -}},
+    {{- settings.logo_width | times: 2 -}}
+  {%- endcapture -%}
+  {{-
+    settings.logo
+    | image_url: width: 600
+    | image_tag:
+      class: 'logo logo--image',
+      widths: logo_widths,
+      height: logo_height,
+      width: settings.logo_width,
+      alt: logo_alt,
+      sizes: logo_sizes,
+      preload: true
+  -}}
+{%- else -%}
+  <h2 class="logo logo--text">{{- shop.name -}}</h2>
+{%- endif -%}
