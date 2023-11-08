@@ -1,0 +1,62 @@
+<header class="header bg-slate-100">
+  <div class="px-5 py-3 xl:flex xl:justify-between xl:items-center">
+    <div class="flex justify-between items-center">
+      <a href="{{ routes.root_url }}" class="header__link logo">
+        {%- if settings.logo != blank -%}
+          {%- assign logo_alt = settings.logo.alt | default: shop.name | escape -%}
+          {%- assign logo_height = settings.logo_width | divided_by: settings.logo.aspect_ratio -%}
+          {%- capture logo_sizes -%}
+          (max-width: {{- settings.logo_width | times: 2 -}}px) 50vw,
+          {{- settings.logo_width -}}px
+        {%- endcapture -%}
+          {%- capture logo_widths -%}
+          {{- settings.logo_width -}},
+          {{- settings.logo_width | times: 1.5 | round -}},
+          {{- settings.logo_width | times: 2 -}}
+        {%- endcapture -%}
+          {{
+            settings.logo
+            | image_url: width: 600
+            | image_tag:
+              class: 'header__logo header__logo--image',
+              widths: logo_widths,
+              height: logo_height,
+              width: settings.logo_width,
+              alt: logo_alt,
+              sizes: logo_sizes,
+              preload: true
+          }}
+        {% else %}
+          <h2 class="header__logo header__logo--text">{{ shop.name }}</h2>
+        {% endif %}
+      </a>
+
+      <label for="nav-toggle-input" class="nav-toggle-label block xl:hidden">
+        <svg
+          class="w-6 h-6"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 17 12"
+        >
+          <path
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2" d="M1 1h15M1 6h15M1 11h15"
+          />
+        </svg>
+      </label>
+    </div>
+    <input type="checkbox" id="nav-toggle-input" class="nav-toggle__input peer sr-only">
+    <nav class="header__nav w-full xl:w-auto overflow-hidden hidden xl:block peer-checked:block">
+      <ul class="header__menu xl:flex gap-5">
+        {%- for link in linklists['main-menu'].links -%}
+          <li>
+            <a class="hover:underline" href="{{ link.url }}">{{ link.title }}</a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+  </div>
+</header>
