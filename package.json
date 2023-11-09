@@ -1,5 +1,5 @@
 {
-  "name": "minimal-theme",
+  "name": "stanza-shopify-theme",
   "version": "0.1.0",
   "description": "A barebones Shopify 2.0 theme with Tailwind CSS and Webpack",
   "private": true,
