@@ -6,9 +6,21 @@
     <ul class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
       {% for product in collection.products %}
         <li>
-          <a href="{{ product.url }}">
-            {{ product.featured_image | image_url: width: 500 | image_tag }}
-            <h2>{{ product.title }}</h2>
+          <a href="{{ product.url }}" class="flex flex-col gap-3 group">
+            {%- if product.featured_image -%}
+              {{
+                product.featured_image
+                | image_url: width: 2000
+                | image_tag:
+                  loading: 'lazy',
+                  class: 'w-full group-hover:opacity-75 aspect-square object-contain',
+                  widths: '500, 1000, 1500, 2000',
+                  sizes: '(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw'
+              }}
+            {%- else -%}
+              {{ 'product-1' | placeholder_svg_tag: 'w-full group-hover:opacity-75' }}
+            {%- endif -%}
+            <h2 class="group-hover:underline">{{ product.title }}</h2>
             <p>{{ product.price | money }}</p>
           </a>
         </li>
