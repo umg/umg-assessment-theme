@@ -1,18 +1,21 @@
 {
-  "name": "umg-minimal-theme",
-  "version": "1.0.0",
-  "description": "A minimal theme for use in code challenges by applicants to UMG",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "minimal-theme",
+  "version": "0.1.0",
+  "description": "A barebones Shopify 2.0 theme with Tailwind CSS and Webpack",
+  "private": true,
+  "author": "Universal Music Group",
+  "license": "UNLICENSED",
   "scripts": {
     "clean": "rm assets/*",
-    "build-dev": "webpack --mode development",
-    "build-prod": "webpack --mode production",
-    "watch": "webpack --mode development --watch"
+    "build": "webpack --mode development",
+    "build:prod": "webpack --mode production",
+    "watch": "webpack --mode development --watch",
+    "serve": "shopify theme dev",
+    "start": "concurrently --names \"WATCH,SERVE\" -c \"bgBlue.bold,bgMagenta.bold\" \"npm run watch\" \"npm run serve\""
   },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
     "css-loader": "^6.8.1",
     "mini-css-extract-plugin": "^2.7.6",
     "postcss-loader": "^7.3.3",
