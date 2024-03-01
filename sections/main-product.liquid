@@ -1,4 +1,4 @@
-<div class="max-w-6xl mx-auto my-8">
+<div class="max-w-6xl mx-auto my-8 " id="main-product">
   <div class="flex ">
     <div class="product--medias w-2/3">
       {% assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src' %}
@@ -52,41 +52,11 @@
               <div>
                 {% render 'product-variant-picker', product: product, block: block, product_form_id: product_form_id %}
               </div>
-              {% comment %}
-                <div class="my-3" {{ block.shopify_attributes }}>
-                  {% unless product.has_only_default_variant %}
-                    <div data-url="{{ product.url}}" data-section="{{ section.id }}">
-                      {% for option in product.options_with_values %}
-                        <label for="Option-{{ section.id }}-{{ forloop.index0 }}">{{ option.name }}</label>
-
-                        <div class="my-2">
-                          <select
-                            name="options[{{ option.name | escape }}]"
-                            id="Option-{{ section.id }}-{{ forloop.index0 }}"
-                            class="w-full border py-3 px-3"
-                          >
-                            {% for value in option.values %}
-                              <option
-                                value="{{ value | escape }}"
-                                {% if option.selected_value == value %}
-                                  selected="selected"
-                                {% endif %}
-                              >
-                                {{ value }}
-                              </option>
-                            {% endfor %}
-                          </select>
-                        </div>
-                      {% endfor %}
-                    </div>
-                  {% endunless %}
-                </div>
-              {% endcomment %}
 
             {%- when 'quantity' -%}
               <div class="my-3" {{ block.shopify_attributes }}>
                 <label for="Quantity-{{ section.id }}">Quantity</label>
-                <div class="flex justify-between border border-black mt-2 h-10">
+                <div class="flex justify-between border border-black mt-2 h-10 w-2/3">
                   <button
                     class=" h-full w-3 m-auto text-black"
                     name="minus"
@@ -153,6 +123,78 @@
     </div>
   </div>
 </div>
+
+{% render 'cart-drawer', cart: cart %}
+
+<script>
+  let root = '{{ routes.root_url }}';
+  if (root[root.length - 1] !== '/') {
+    root = `${root}/`;
+  }
+  var theme = {
+    routes: {
+      root_url: root,
+      cart: '{{ routes.cart_url }}',
+      cart_add_url: '{{ routes.cart_add_url }}',
+    },
+  };
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org/",
+    "@type": "Product",
+    "name": {{ product.title | json }},
+    "url": {{ request.origin | append: product.url | json }},
+    {% if seo_media -%}
+      "image": [
+        {{ seo_media | image_url: width: 1920 | prepend: "https:" | json }}
+      ],
+    {%- endif %}
+    "description": {{ product.description | strip_html | json }},
+    {% if product.selected_or_first_available_variant.sku != blank -%}
+      "sku": {{ product.selected_or_first_available_variant.sku | json }},
+    {%- endif %}
+    "category": {{ product.type | json }},
+    {%- if product.metafields.reviews.rating.value != blank -%}
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ product.metafields.reviews.rating.value }}",
+        "ratingCount": "{{ product.metafields.reviews.rating_count.value }}",
+        "bestRating": "{{ product.metafields.reviews.rating.value.scale_max }}",
+        "worstRating": "{{ product.metafields.reviews.rating.value.scale_min }}"
+      },
+    {%- endif -%}
+    "brand": {
+      "@type": "Brand",
+      "name": {{ product.vendor | default: shop.name | json }}
+    },
+    "offers": [
+      {%- for variant in product.variants -%}
+        {
+          "@type" : "Offer",
+          {%- if variant.sku != blank -%}
+            "sku": {{ variant.sku | json }},
+          {%- endif -%}
+          {%- if variant.barcode.size == 12 -%}
+            "gtin12": {{ variant.barcode | json }},
+          {%- endif -%}
+          {%- if variant.barcode.size == 13 -%}
+            "gtin13": {{ variant.barcode | json }},
+          {%- endif -%}
+          {%- if variant.barcode.size == 14 -%}
+            "gtin14": {{ variant.barcode | json }},
+          {%- endif -%}
+          "availability" : "http://schema.org/{% if variant.available %}InStock{% else %}OutOfStock{% endif %}",
+          "price" : {{ variant.price | divided_by: 100.00 | json }},
+          "priceCurrency" : {{ cart.currency.iso_code | json }},
+          "priceValidUntil": "{{ 'now' | date: '%s' | plus: seconds_price_valid | date: '%Y-%m-%d' }}",
+          "url" : {{ request.origin | append: variant.url | json }}
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  }
+</script>
 
 {% schema %}
 {
