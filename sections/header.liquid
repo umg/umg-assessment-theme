@@ -1,4 +1,4 @@
-<header class="bg-slate-100">
+<header class="bg-slate-100 ">
   <div class="container-full py-4 xl:flex xl:justify-between xl:items-center">
     <div class="flex justify-between items-center">
       <a href="{{ routes.root_url }}" aria-label="Home">
@@ -52,26 +52,25 @@
           {%- endfor -%}
         </ul>
       {%- endif -%}
-
-      <div class="flow-root">
-        <a href="{{ routes.cart_url }}" class="group -m-2 flex items-center p-2">
-          <svg
-            class="h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-          </svg>
-          <span class="ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800">
-            {{ cart.item_count }}
-          </span>
-          <span class="sr-only">items in cart, view bag</span>
-        </a>
-      </div>
     </nav>
+    <div class="flex items-center justify-end">
+      <a href="{{ routes.cart_url }}" class="group -m-2 flex items-center p-2">
+        <svg
+          class="h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+        </svg>
+        <span class="ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800">
+          {{ cart.item_count }}
+        </span>
+        <span class="sr-only">items in cart, view bag</span>
+      </a>
+    </div>
   </div>
 </header>
 {% schema %}

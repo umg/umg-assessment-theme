@@ -1,25 +1,204 @@
-{% assign current_variant = product.selected_or_first_available_variant %}
-{% assign featured_image = current_variant.featured_image | default: product.featured_image %}
-<img src="{{ featured_image | img_url: 'large' }}" alt="{{ featured_image.alt | escape }}" id="ProductPhotoImg">
-{% for image in product.images %}
-  <a href="{{ image.src | img_url: 'large' }}">
-    <img src="{{ image.src | img_url: 'compact' }}" alt="{{ image.alt | escape }}">
-  </a>
-{% endfor %}
-<h1>{{ product.title }}</h1>
-<form action="/cart/add" method="post" enctype="multipart/form-data" id="AddToCartForm">
-  <select name="id" id="productSelect">
-    {% for variant in product.variants %}
-      {% if variant.available %}
-        <option value="{{ variant.id }}">{{ variant.title }} - {{ variant.price | money_with_currency }}</option>
-      {% else %}
-        <option disabled="disabled">{{ variant.title }} - sold out</option>
-      {% endif %}
-    {% endfor %}
-  </select>
-  {{ current_variant.price | money }}
-  <label for="Quantity">quantity</label>
-  <input type="number" id="Quantity" name="quantity" value="1" min="1">
-  <button type="submit" name="add" id="AddToCart">Add to cart</button>
-</form>
-<div>{{ product.description }}</div>
+<div class="max-w-6xl mx-auto my-8">
+  <div class="flex ">
+    <div class="product--medias w-2/3">
+      {% assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src' %}
+      <div class="hidden md:block">
+        <div class=" w-full  py-2 px-20">
+          {% render 'product-media-gallery', variant_images: variant_images %}
+        </div>
+      </div>
+
+      <div class="md:hidden">
+        <div class="swiper h-94">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide">
+              <div class="h-90 overflow-hidden p-2">
+                {% render 'product-media-gallery', variant_images: variant_images %}
+              </div>
+            </div>
+          </div>
+
+          <div class="swiper-pagination"></div>
+
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-button-next"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product--information sticky top-5 p-2 w-1/3">
+      {% form 'product', product %}
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+        {%- assign product_form_id = 'product-form-' | append: section.id -%}
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'title' -%}
+              <div class="my-3" {{ block.shopify_attributes }}>
+                <h1 class="text-3xl text-gray-900">{{ product.title }}</h1>
+              </div>
+
+            {%- when 'price' -%}
+              <div class="my-3" {{ block.shopify_attributes }}>
+                {% assign product_price = product.selected_or_first_available_variant %}
+                <span class="text-base text-gray-500 line-through">{{ product_price.compare_at_price | money }}</span>
+                <span class="text-lg text-gray-900">{{ product_price.price | money }}</span>
+
+                {% if product_price.price < product_price.compare_at_price %}
+                  <span class="px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">Sale</span>
+                {% endif %}
+              </div>
+
+            {%- when 'variant_picker' -%}
+              <div>
+                {% render 'product-variant-picker', product: product, block: block, product_form_id: product_form_id %}
+              </div>
+              {% comment %}
+                <div class="my-3" {{ block.shopify_attributes }}>
+                  {% unless product.has_only_default_variant %}
+                    <div data-url="{{ product.url}}" data-section="{{ section.id }}">
+                      {% for option in product.options_with_values %}
+                        <label for="Option-{{ section.id }}-{{ forloop.index0 }}">{{ option.name }}</label>
+
+                        <div class="my-2">
+                          <select
+                            name="options[{{ option.name | escape }}]"
+                            id="Option-{{ section.id }}-{{ forloop.index0 }}"
+                            class="w-full border py-3 px-3"
+                          >
+                            {% for value in option.values %}
+                              <option
+                                value="{{ value | escape }}"
+                                {% if option.selected_value == value %}
+                                  selected="selected"
+                                {% endif %}
+                              >
+                                {{ value }}
+                              </option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endunless %}
+                </div>
+              {% endcomment %}
+
+            {%- when 'quantity' -%}
+              <div class="my-3" {{ block.shopify_attributes }}>
+                <label for="Quantity-{{ section.id }}">Quantity</label>
+                <div class="flex justify-between border border-black mt-2 h-10">
+                  <button
+                    class=" h-full w-3 m-auto text-black"
+                    name="minus"
+                    type="button"
+                  >
+                    {% render 'icon-minus' %}
+                  </button>
+                  <input
+                    class="h-full text-center"
+                    type="number"
+                    name="quantity"
+                    id="Quantity-{{ section.id }}"
+                    data-min="{{ product.selected_or_first_available_variant.quantity_rule.min }}"
+                    min="{{ product.selected_or_first_available_variant.quantity_rule.min }}"
+                    {% if product.selected_or_first_available_variant.quantity_rule.max != null %}
+                      data-max="{{ product.selected_or_first_available_variant.quantity_rule.max }}"
+                      max="{{ product.selected_or_first_available_variant.quantity_rule.max }}"
+                    {% endif %}
+                    step="{{ product.selected_or_first_available_variant.quantity_rule.increment }}"
+                    value="{{ product.selected_or_first_available_variant.quantity_rule.min }}"
+                    form="{{ product_form_id }}"
+                  >
+                  <button class=" h-full w-3 m-auto text-black" name="plus" type="button">
+                    {% render 'icon-plus' %}
+                  </button>
+                </div>
+              </div>
+            {%- when 'buy_buttons' -%}
+              <div class="my-3" {{ block.shopify_attributes }}>
+                <button
+                  type="submit"
+                  name="add"
+                  class="w-full px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2"
+                  {% if product.selected_or_first_available_variant == false %}
+                    disabled
+                  {% endif %}
+                >
+                  {% if product.selected_or_first_available_variant.available == false %}
+                    Sold out
+                  {% else %}
+                    Add to cart
+                  {% endif %}
+                </button>
+              </div>
+
+            {%- when 'description' -%}
+              <div class="my-3" {{ block.shopify_attributes }}>
+                <p class="text-gray-700">{{ product.description }}</p>
+              </div>
+
+            {%- when '@app' -%}
+              {% render block %}
+
+            {%- when 'text' -%}
+              <p
+                class="text-gray-700"
+                {{ block.shopify_attributes }}
+              >
+                {{- block.settings.text -}}
+              </p>
+          {%- endcase -%}
+        {%- endfor -%}
+      {% endform %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "main-product",
+  "tag": "section",
+  "class": "section",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "title",
+      "name": "Title",
+      "limit": 1
+    },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1
+    },
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1
+    },
+    {
+      "type": "quantity",
+      "name": "Quantity",
+      "limit": 1
+    },
+    {
+      "type": "variant_picker",
+      "name": "Variants",
+      "limit": 1
+    },
+    {
+      "type": "buy_buttons",
+      "name": "Buy buttons",
+      "limit": 1
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "limit": 1
+    },
+    {
+      "type": "@app"
+    }
+  ]
+}
+{% endschema %}

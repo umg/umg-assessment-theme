@@ -1,0 +1,43 @@
+{% comment %}
+  Renders product variant-picker
+
+  Accepts:
+  - product: {Object} product object.
+  - block: {Object} passing the block information.
+  - product_form_id: {String} Id of the product form to which the variant picker is associated.
+  - update_url: {Boolean} whether or not to update url when changing variants. If false, the url isn't updated. Default: true (optional).
+  Usage:
+  {% render 'product-variant-picker', product: product, block: block, product_form_id: product_form_id %}
+{% endcomment %}
+
+<div class="my-3">
+  {% unless product.has_only_default_variant %}
+    {% for option in product.options_with_values %}
+      <div class="my-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-medium text-gray-900">{{ option.name }}</h2>
+        </div>
+
+        <fieldset class="mt-2">
+          <legend class="sr-only">Choose a {{ option.name }}</legend>
+
+          <div class="flex">
+            {% for value in option.values %}
+              <label class="flex mx-2 items-center justify-center rounded-md border py-2 px-3 text-sm font-medium sm:flex-1 cursor-pointer focus:outline-none hover:bg-black hover:text-white">
+                <input
+                  type="radio"
+                  name="{{ option.name | escape }}"
+                  value="{{ value | escape }}"
+                  class="sr-only"
+                  aria-labelledby="Option-{{ section.id }}-{{ forloop.index0 }}-label"
+                  id="Option-{{ section.id }}-{{ forloop.index0 }}"
+                >
+                <span id="Option-{{ section.id }}-{{ forloop.index0 }}-label"> {{ value }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+      </div>
+    {% endfor %}
+  {% endunless %}
+</div>
