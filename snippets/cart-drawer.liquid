@@ -87,7 +87,11 @@
                               <p class="text-gray-500">Qty {{ item.quantity }}</p>
 
                               <div class="flex">
-                                <button type="button" class="font-medium text-indigo-600 hover:text-indigo-500">
+                                <button
+                                  data-url="{{ item.url_to_remove }}"
+                                  type="button"
+                                  class="remove-cart-item font-medium text-indigo-600 hover:text-indigo-500"
+                                >
                                   Remove
                                 </button>
                               </div>

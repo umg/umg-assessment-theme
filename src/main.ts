@@ -11,6 +11,9 @@ declare global {
         root_url: string;
       };
     };
+    product: {
+      variants: JSON;
+    }
   }
 }
 class ProductInfo {
@@ -18,40 +21,44 @@ class ProductInfo {
     this.init();
   }
   init() {
-    this.toggleVariants();
+    this.inputQuantity();
+    this.removeCartItems();
     this.OnSubmitForm();
   }
-  
 
-  toggleVariants() {
-    const variantRadios: NodeListOf<HTMLInputElement> = document.querySelectorAll('.variants-picker input[type="radio"]');
-    const onVariantChange = (event: Event) => {
-      const target: HTMLInputElement = event.target as HTMLInputElement;
-      const variantId = target.dataset.variantId;
-      const handle = target.dataset.productHandle;
-      if (variantId) {
-        const url: string = `${window.theme.routes.root_url}products/${handle}?variant=${variantId}`;
-        window.history.replaceState({}, '', url);
-        fetch(url)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.text();
-        })
-      .then(responseText => {
-        this.renderSection(responseText, 'main-product');
-        this.init();
+  inputQuantity() {
+    const input = document.querySelector('#quantity-input') as HTMLInputElement;
+    const changeEvent = new Event('change', { bubbles: true });
+    const btns : NodeListOf<HTMLButtonElement> =  document.querySelectorAll('.quantity__button')
+    btns.forEach((button: HTMLButtonElement) =>
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        
+        const previousValue = input.value;
+        const target = event.target as EventTarget;
+        target.name === 'plus' ? input.stepUp() : input.stepDown();
+        if (previousValue !== input.value) input.dispatchEvent(changeEvent);
       })
-      .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
-      });
-       
-      }
-    };
+    );
+  }
 
-    variantRadios.forEach((radio: HTMLInputElement) => {
-      radio.addEventListener('change', onVariantChange);
+  removeCartItems() {
+    const instance = this;
+    const removeButtons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.remove-cart-item');
+    removeButtons.forEach((button: HTMLButtonElement) => {
+      button.addEventListener('click', function(evt) {
+        evt.preventDefault();
+        const url = button.dataset.url;
+        if (!url) return;
+        fetch(url)
+        .then((response) => response.text())
+        .then(response => {
+          instance.onCartChanged();
+        })
+        .catch(error => {
+          console.error('There has been a problem with your fetch operation:', error);
+        });
+      });
     });
   }
 
@@ -119,6 +126,81 @@ class ProductInfo {
 
 }
 
+class VariantSelector {
+  options: Array<any> = [];
+  variantData: any = null;
+  currentVariant: any = null;
+  constructor() {
+    this.init();
+  }
+ 
+  init() {
+    this.onVariantChange()
+  }
+
+  onVariantChange() {
+    const instance = this;
+    const variantRadios: NodeListOf<HTMLInputElement> = document.querySelectorAll('.variants-picker input[type="radio"]');
+    variantRadios.forEach((radio: HTMLInputElement) => {
+      radio.addEventListener('change', (event: Event) => {
+        instance.getSelectedOptions();
+        instance.getSelectedVariant();
+        if (instance.currentVariant) {
+          const target: HTMLInputElement = event.target as HTMLInputElement;
+          const handle = target.dataset.productUrl;
+          if (!handle) return;
+          instance.updateURL(handle);
+          instance.renderProductInfo(handle);
+        }
+      });
+    });
+
+    
+  }
+  getSelectedOptions() {
+    this.options = Array.from(document.querySelectorAll('input[type="radio"]:checked'), (select) => (select as HTMLInputElement).value);
+  }
+
+  getVariantJSON() {
+    this.variantData = this.variantData || window.product.variants;
+    return this.variantData;
+  }
+
+  getSelectedVariant() {
+    this.currentVariant = this.getVariantJSON().find((variant: any) => {
+      const findings = !variant.options
+        .map((option: any, index: number) => {
+          return this.options[index] === option;
+        })
+        .includes(false);
+
+      if (findings) return variant;
+    });
+  }
+
+  updateURL(handle : string) {
+    if (!this.currentVariant) return;
+    window.history.replaceState({}, '', `${handle}?variant=${this.currentVariant.id}`);
+  }
+
+  renderProductInfo(handle : string) {
+      fetch(`${handle}?variant=${this.currentVariant.id}`)
+        .then((response) => response.text())
+        .then((responseText) => {
+          const id = `main-product`;
+          const html = new DOMParser().parseFromString(responseText, 'text/html');
+
+          const oldContent = document.getElementById(id);
+          const newContent = html.getElementById(id);
+
+          if (oldContent && newContent) oldContent.innerHTML = newContent.innerHTML;
+          const product = new ProductInfo();
+          product.init();
+          this.init();
+        });
+  }
+};
+
 class CartDrawer {
   constructor() {
     document.addEventListener('DOMContentLoaded', () => {
@@ -154,10 +236,13 @@ class CartDrawer {
     const cartDrawer: HTMLElement | null = document.querySelector('#cart-drawer');
     const container: HTMLElement | null = document.querySelector('#cart-drawer .cart-container');
     if (!cartDrawer || !container) return;
-      cartDrawer.classList.toggle('hidden');
       cartDrawer.classList.replace('opacity-0', 'opacity-100');
       container.classList.remove('translate-x-full');
       container.classList.add('translate-x-0');
+
+      setTimeout(() => {
+        cartDrawer.classList.remove('hidden');
+      }, 500);
   }
 
   closeCart() {
@@ -196,4 +281,5 @@ class CartDrawer {
 }
 
 new ProductInfo();
+new VariantSelector();
 new CartDrawer();

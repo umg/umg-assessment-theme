@@ -45,22 +45,21 @@
                 {%- if option_disabled %}
                   aria-disabled="true"
                 {% endif %}
-                data-variant-id="{{ variants_ids_arr[forloop.index0] }}"
               >
                 <input
                   type="radio"
                   id="{{ option.name }}-{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}-label"
-                  data-variant-id="{{ variants_ids_arr[forloop.index0] }}"
-                  data-product-handle="{{ product.handle }}"
+                  data-product-url="{{ product.url }}"
                   name="{{ option.name }}"
                   value="{{ value | escape }}"
                   form="{{ product_form_id }}"
-                  class="sr-only"
+                  class="sr-only selector"
                   {% if option_disabled %}
                     aria-disabled="true"
                   {% endif %}
                   {% if option.selected_value == value %}
                     selected="selected"
+                    checked
                   {% endif %}
                   aria-labelledby="{{ option.name }}-{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}-label"
                 >
@@ -75,3 +74,9 @@
     </div>
   {% endunless %}
 </div>
+
+<script>
+  window.product = {
+    variants: {{ product.variants | json }}
+  }
+</script>

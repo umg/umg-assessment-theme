@@ -58,7 +58,7 @@
                 <label for="Quantity-{{ section.id }}">Quantity</label>
                 <div class="flex justify-between border border-black mt-2 h-10 w-2/3">
                   <button
-                    class=" h-full w-3 m-auto text-black"
+                    class="h-full w-3 m-auto text-black quantity__button z-10"
                     name="minus"
                     type="button"
                   >
@@ -68,7 +68,7 @@
                     class="h-full text-center"
                     type="number"
                     name="quantity"
-                    id="Quantity-{{ section.id }}"
+                    id="quantity-input"
                     data-min="{{ product.selected_or_first_available_variant.quantity_rule.min }}"
                     min="{{ product.selected_or_first_available_variant.quantity_rule.min }}"
                     {% if product.selected_or_first_available_variant.quantity_rule.max != null %}
@@ -79,7 +79,7 @@
                     value="{{ product.selected_or_first_available_variant.quantity_rule.min }}"
                     form="{{ product_form_id }}"
                   >
-                  <button class=" h-full w-3 m-auto text-black" name="plus" type="button">
+                  <button class="h-full w-3 m-auto text-black quantity__button z-10" name="plus" type="button">
                     {% render 'icon-plus' %}
                   </button>
                 </div>
@@ -137,14 +137,6 @@
       cart: '{{ routes.cart_url }}',
       cart_add_url: '{{ routes.cart_add_url }}',
     },
-  };
-  var item = {
-    Name: {{ product.title | json }},
-    ProductID: {{ product.id | json }},
-    Categories: {{ product.collections | map: 'title' | json }},
-    ImageURL: "https:{{ product.featured_image.src | image_url: 'grande' }}",
-    URL: "{{ shop.secure_url }}{{ product.url }}",
-    Price: {{ product.price | money_without_trailing_zeros | strip_html | json }}
   };
 </script>
 
