@@ -35,7 +35,7 @@ class ProductInfo {
         event.preventDefault();
         
         const previousValue = input.value;
-        const target = event.target as EventTarget;
+        const target = event.target as HTMLInputElement;
         target.name === 'plus' ? input.stepUp() : input.stepDown();
         if (previousValue !== input.value) input.dispatchEvent(changeEvent);
       })
