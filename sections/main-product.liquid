@@ -1,4 +1,4 @@
-<div class="max-w-6xl mx-auto my-8 " id="main-product">
+<div class="max-w-6xl mx-auto my-8 " id="product-page">
   <div class="flex ">
     <div class="product--medias w-2/3">
       {% assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src' %}
@@ -139,6 +139,7 @@
       root_url: root,
       cart: '{{ routes.cart_url }}',
       cart_add_url: '{{ routes.cart_add_url }}',
+      cart_update_url: '{{ routes.cart_update_url }}',
     },
   };
 </script>

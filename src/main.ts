@@ -7,6 +7,7 @@ declare global {
     theme: {
       routes: {
         cart_add_url: string;
+        cart_update_url: string;
         cart_url: string;
         root_url: string;
       };
@@ -22,14 +23,13 @@ class ProductInfo {
     this.inputQuantity();
   }
   init() {
-    this.removeCartItems();
     this.OnSubmitForm();
   }
 
   inputQuantity() {
-    const input = document.querySelector('#quantity-input') as HTMLInputElement;
+    const input = document.querySelector('#product-page #quantity-input') as HTMLInputElement;
     const changeEvent = new Event('change', { bubbles: true });
-    const btns: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.quantity__button');
+    const btns: NodeListOf<HTMLButtonElement> = document.querySelectorAll('#product-page .quantity__button');
     btns.forEach((button: HTMLButtonElement) =>
       button.addEventListener('click', function(event) {
         event.preventDefault();
@@ -40,36 +40,11 @@ class ProductInfo {
         console.log(previousValue !== input.value, input.value)
         if (previousValue !== input.value) {
           input.dispatchEvent(changeEvent);  
-          input.setAttribute('value', input.value);  // This line ensures the HTML reflects the updated value
+          input.setAttribute('value', input.value);  
         }
       })
     );
   }
-  
-
-  removeCartItems() {
-    const instance = this;
-    const removeButtons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.remove-cart-item');
-    removeButtons.forEach((button: HTMLButtonElement) => {
-      button.addEventListener('click', function(evt) {
-        evt.preventDefault();
-        const cart = document.getElementById('cart-drawer');
-        const loading = cart?.querySelector('.loading') as HTMLElement;
-        loading?.classList.remove('hidden');
-        const url = button.dataset?.url;
-        if (!url) return;
-        fetch(url)
-        .then((response) => response.text())
-        .then(response => {
-          instance.onCartChanged();
-        })
-        .catch(error => {
-          console.error('There has been a problem with your fetch operation:', error);
-        });
-      });
-    });
-  }
-  
 
   OnSubmitForm() {
     const instance = this;
@@ -107,7 +82,8 @@ class ProductInfo {
       fetch(`${window.theme.routes.cart_add_url}`, config)
       .then((response) => response.json())
       .then(response => {
-        instance.onCartChanged();
+        const drawer = new CartDrawer();
+        drawer.onCartChanged();
         submitButton.disabled = false;
         submitButton.classList.remove('opacity-50');
         if(loadingElement)
@@ -122,30 +98,6 @@ class ProductInfo {
     });
 
   }
-
-  onCartChanged() {
-    const drawer = new CartDrawer();
-    drawer.openCart();
-    const cart = document.getElementById('cart-drawer');
-    const loading = cart?.querySelector('.loading') as HTMLElement;
-    loading?.classList.remove('hidden');
-    fetch(`${window.theme.routes.cart_url}?section_id=cart-drawer`)
-        .then((response) => response.text())
-        .then((responseText) => {
-          this.renderSection(responseText, 'cart-drawer', loading);
-          this.init();
-          drawer.init();
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-
-    const cartCount = document.getElementById('cart-drawer-count');
-    if (cartCount){
-      
-    }
-  }
-
 
   renderSection(content: string, sectionId: string, loading: HTMLElement) {
     const html = new DOMParser().parseFromString(content, 'text/html');
@@ -227,7 +179,7 @@ class VariantSelector {
       fetch(`${handle}?variant=${this.currentVariant.id}`)
         .then((response) => response.text())
         .then((responseText) => {
-          const id = `main-product`;
+          const id = `product-page`;
           const html = new DOMParser().parseFromString(responseText, 'text/html');
 
           const oldContent = document.getElementById(id);
@@ -246,10 +198,12 @@ class CartDrawer {
     document.addEventListener('DOMContentLoaded', () => {
       this.init();
     });
+    this.cartQuantity();
   }
 
   init() {
     this.setHeaderCart();
+    this.removeCartItems();
   }
   
   setHeaderCart() {
@@ -274,7 +228,7 @@ class CartDrawer {
       if(!cartDrawer?.getAttribute('class')?.includes('hidden'))
       {
         if (event.target !== cartDrawer) {
-          this.closeCart();
+          // this.closeCart();
         }
       }
       
@@ -307,24 +261,109 @@ class CartDrawer {
     }, 500);
   }
 
-  renderSection(url: string, sectionId: string) {
-    fetch(url)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+  renderSection(content: string, sectionId: string, loading: HTMLElement) {
+    const html = new DOMParser().parseFromString(content, 'text/html');
+    const mainContent = document.getElementById(sectionId);
+    const newContent = html.getElementById(sectionId);
+    if (!mainContent || !newContent) return;
+    mainContent.innerHTML = newContent.innerHTML;
+    loading?.classList.add('hidden');
+  }
+
+  onCartChanged() {
+    this.openCart();
+    const cart = document.getElementById('cart-drawer');
+    const loading = cart?.querySelector('.loading') as HTMLElement;
+    loading?.classList.remove('hidden');
+    fetch(`${window.theme.routes.cart_url}?section_id=cart-drawer`)
+        .then((response) => response.text())
+        .then((responseText) => {
+          this.renderSection(responseText, 'cart-drawer', loading);
+          this.init();
+          this.cartQuantity();
+        })
+        .catch((e) => {
+          console.error(e);
+        });
+
+    const cartCount = document.getElementById('cart-drawer-count');
+    if (cartCount){
+      
+    }
+  }
+
+  cartQuantity() {
+    const instance = this;
+    const cartDrawer = document.getElementById('cart-drawer');
+    const changeEvent = new Event('change', { bubbles: true });
+    const btns = cartDrawer?.querySelectorAll('.quantity__button');
+    btns?.forEach((button) =>
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        const target: HTMLInputElement = event.currentTarget as HTMLInputElement;
+        const elementId = target.dataset.id;
+        const input = cartDrawer?.querySelector(`#${elementId}`) as HTMLInputElement;
+        const previousValue = input.value;
+        target.name === 'plus' ? input.stepUp() : input.stepDown();
+        if (previousValue !== input.value) {
+          input.dispatchEvent(changeEvent);  
+          input.setAttribute('value', input.value);
+          const key = input.dataset.key  as string;
+          const value = input.value as string;
+          instance.updateCartQuantity(key, value);
         }
-        return response.text();
       })
-      .then(responseText => {
-        const html = new DOMParser().parseFromString(responseText, 'text/html');
-        const mainContent = document.getElementById(sectionId);
-        const newContent = html.getElementById(sectionId);
-        if (!mainContent || !newContent) return;
-        mainContent.innerHTML = newContent.innerHTML;
-      })
-      .catch(error => {
-        console.error('There has been a problem with your fetch operation:', error);
+    );
+  }
+
+  updateCartQuantity(key: string, value: string) {
+    const updates = {
+      [key]: value
+    };
+    const config = {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', Accept: `application/json`},
+      body: JSON.stringify({ updates })
+    }
+    const cart = document.getElementById('cart-drawer');
+    const loading = cart?.querySelector('.loading') as HTMLElement;
+    loading?.classList.remove('hidden');
+
+    fetch(`${window.theme.routes.cart_update_url}`, config)
+    .then((response) => response.json())
+    .then(response => {
+      this.onCartChanged();
+    })
+    .catch(error => {
+      console.error('There has been a problem with your fetch operation:', error);
+    }).finally(() => {
+     console.log('done')
+    });
+
+  }
+  
+
+  removeCartItems() {
+    const instance = this;
+    const removeButtons: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.remove-cart-item');
+    removeButtons.forEach((button: HTMLButtonElement) => {
+      button.addEventListener('click', function(evt) {
+        evt.preventDefault();
+        const cart = document.getElementById('cart-drawer');
+        const loading = cart?.querySelector('.loading') as HTMLElement;
+        loading?.classList.remove('hidden');
+        const url = button.dataset?.url;
+        if (!url) return;
+        fetch(url)
+        .then((response) => response.text())
+        .then(response => {
+          instance.onCartChanged();
+        })
+        .catch(error => {
+          console.error('There has been a problem with your fetch operation:', error);
+        });
       });
+    });
   }
 
 }
