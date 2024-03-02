@@ -1,9 +1,9 @@
 <div class="max-w-6xl mx-auto my-8 " id="product-page">
-  <div class="flex ">
-    <div class="product--medias w-2/3">
+  <div class="flex flex-col md:flex-row">
+    <div class="product--medias md:w-2/3">
       {% assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src' %}
       <div class="hidden md:block">
-        <div class=" w-full  py-2 px-20">
+        <div class=" w-full py-2 px-20">
           {% render 'product-media-gallery', variant_images: variant_images %}
         </div>
       </div>
@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <div class="product--information sticky top-5 p-2 w-1/3">
+    <div class="product--information sticky top-5 p-2 md:w-1/3">
       {% form 'product', product, id: 'product_form' %}
         <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
         {%- assign product_form_id = 'product-form-' | append: section.id -%}
