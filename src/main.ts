@@ -37,7 +37,6 @@ class ProductInfo {
         const previousValue = input.value;
         const target = event.currentTarget as HTMLInputElement;
         target.name === 'plus' ? input.stepUp() : input.stepDown();
-        console.log(previousValue !== input.value, input.value)
         if (previousValue !== input.value) {
           input.dispatchEvent(changeEvent);  
           input.setAttribute('value', input.value);  
@@ -228,7 +227,7 @@ class CartDrawer {
       if(!cartDrawer?.getAttribute('class')?.includes('hidden'))
       {
         const container = cartDrawer?.querySelector('.cart-container')
-        const outsideClick = container?.contains(event.target);
+        const outsideClick = container?.contains(event.target as Element);
         // If the click is outside the cart drawer and not on the close button, close the cart drawer.
         if (!outsideClick) {
           this.closeCart();
@@ -264,12 +263,15 @@ class CartDrawer {
     }, 500);
   }
 
-  renderSection(content: string, sectionId: string, loading: HTMLElement) {
+  renderSection(content: string, selectors: Array<string>, loading: HTMLElement | null) {
     const html = new DOMParser().parseFromString(content, 'text/html');
-    const mainContent = document.getElementById(sectionId);
-    const newContent = html.getElementById(sectionId);
-    if (!mainContent || !newContent) return;
-    mainContent.innerHTML = newContent.innerHTML;
+    for (const selector of selectors) {
+      const targetElement = document.querySelector(selector);
+      const sourceElement = html.querySelector(selector);
+      if (targetElement && sourceElement) {
+        targetElement.innerHTML = sourceElement.innerHTML;
+      }
+    }
     loading?.classList.add('hidden');
   }
 
@@ -281,7 +283,8 @@ class CartDrawer {
     fetch(`${window.theme.routes.cart_url}?section_id=cart-drawer`)
         .then((response) => response.text())
         .then((responseText) => {
-          this.renderSection(responseText, 'cart-drawer', loading);
+          const selectors = ['#cart-drawer' ];
+          this.renderSection(responseText, selectors, loading);
           this.init();
           this.cartQuantity();
         })
@@ -289,10 +292,15 @@ class CartDrawer {
           console.error(e);
         });
 
-    const cartCount = document.getElementById('cart-drawer-count');
-    if (cartCount){
-      
-    }
+    fetch(`${window.theme.routes.cart_url}?section_id=header`)
+      .then((response) => response.text())
+          .then((responseText) => {
+            const selectors = ['#cart-drawer-count' ];
+            this.renderSection(responseText, selectors, null);
+          })
+          .catch((e) => {
+            console.error(e);
+          });
   }
 
   cartQuantity() {
