@@ -227,8 +227,11 @@ class CartDrawer {
       const cartDrawer: HTMLElement | null = document.querySelector('#cart-drawer');
       if(!cartDrawer?.getAttribute('class')?.includes('hidden'))
       {
-        if (event.target !== cartDrawer) {
-          // this.closeCart();
+        const container = cartDrawer?.querySelector('.cart-container')
+        const outsideClick = container?.contains(event.target);
+        // If the click is outside the cart drawer and not on the close button, close the cart drawer.
+        if (!outsideClick) {
+          this.closeCart();
         }
       }
       
