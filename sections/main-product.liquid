@@ -89,7 +89,7 @@
                 <button
                   type="submit"
                   name="add"
-                  class="w-full px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2"
+                  class="w-full flex items-center justify-center px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2 "
                   {% if product.selected_or_first_available_variant == false %}
                     disabled
                   {% endif %}
@@ -97,7 +97,10 @@
                   {% if product.selected_or_first_available_variant.available == false %}
                     Sold out
                   {% else %}
-                    Add to cart
+                    <span class="loading hidden w-5 text-white">
+                      {% render 'loading' %}
+                    </span>
+                    <span> Add to cart </span>
                   {% endif %}
                 </button>
               </div>

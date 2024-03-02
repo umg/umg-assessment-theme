@@ -52,6 +52,13 @@
                   </button>
                 </div>
               </div>
+              <div class="absolute z-10 h-full loading hidden m-auto w-screen bg-white opacity-50">
+                <div class="flex h-full items-center justify-center w-1/4">
+                  <span class="w-20">
+                    {% render 'loading' %}
+                  </span>
+                </div>
+              </div>
 
               <div class="mt-8">
                 {% if cart.item_count > 0 %}

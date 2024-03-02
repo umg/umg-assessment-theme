@@ -19,9 +19,9 @@ declare global {
 class ProductInfo {
   constructor() {
     this.init();
+    this.inputQuantity();
   }
   init() {
-    this.inputQuantity();
     this.removeCartItems();
     this.OnSubmitForm();
   }
@@ -53,7 +53,10 @@ class ProductInfo {
     removeButtons.forEach((button: HTMLButtonElement) => {
       button.addEventListener('click', function(evt) {
         evt.preventDefault();
-        const url = button.dataset.url;
+        const cart = document.getElementById('cart-drawer');
+        const loading = cart?.querySelector('.loading') as HTMLElement;
+        loading?.classList.remove('hidden');
+        const url = button.dataset?.url;
         if (!url) return;
         fetch(url)
         .then((response) => response.text())
@@ -66,6 +69,7 @@ class ProductInfo {
       });
     });
   }
+  
 
   OnSubmitForm() {
     const instance = this;
@@ -76,10 +80,12 @@ class ProductInfo {
       const submitButton : HTMLInputElement | null = form.querySelector('[type="submit"]');
       if(!submitButton) return;
 
-      if (submitButton.getAttribute('aria-disabled') === 'true') return;
+      if (submitButton.disabled) return;
 
-      submitButton.setAttribute('aria-disabled', 'true');
-      submitButton.classList.add('loading');
+      submitButton.disabled = true;
+      submitButton.classList.add('opacity-50');
+      const loadingElement = submitButton.querySelector('.loading') as HTMLElement;
+      loadingElement?.classList.remove('hidden');
 
       const formData = new FormData(form);
       const quantityInput = document.getElementById('quantity-input') as HTMLInputElement;
@@ -102,26 +108,33 @@ class ProductInfo {
       .then((response) => response.json())
       .then(response => {
         instance.onCartChanged();
+        submitButton.disabled = false;
+        submitButton.classList.remove('opacity-50');
+        if(loadingElement)
+        loadingElement.classList.add('hidden');
       })
       .catch(error => {
         console.error('There has been a problem with your fetch operation:', error);
       }).finally(() => {
-        submitButton.setAttribute('aria-disabled', 'false');
-        submitButton.classList.remove('loading');
+        submitButton.classList.remove('opacity-50');
+        loadingElement?.classList.add('hidden');
       });
     });
 
   }
 
   onCartChanged() {
+    const drawer = new CartDrawer();
+    drawer.openCart();
+    const cart = document.getElementById('cart-drawer');
+    const loading = cart?.querySelector('.loading') as HTMLElement;
+    loading?.classList.remove('hidden');
     fetch(`${window.theme.routes.cart_url}?section_id=cart-drawer`)
         .then((response) => response.text())
         .then((responseText) => {
-          this.renderSection(responseText, 'cart-drawer');
+          this.renderSection(responseText, 'cart-drawer', loading);
           this.init();
-          const drawer = new CartDrawer();
           drawer.init();
-          drawer.openCart();
         })
         .catch((e) => {
           console.error(e);
@@ -129,21 +142,18 @@ class ProductInfo {
 
     const cartCount = document.getElementById('cart-drawer-count');
     if (cartCount){
-      //  update span element content with cart count (us Shopify's cart count javascript variable)
-      // console.log(window.theme)
-      // cartCount.innerHTML = cartCount.innerHTML + 1;
+      
     }
   }
 
 
-  renderSection(content: string, sectionId: string) {
+  renderSection(content: string, sectionId: string, loading: HTMLElement) {
     const html = new DOMParser().parseFromString(content, 'text/html');
     const mainContent = document.getElementById(sectionId);
     const newContent = html.getElementById(sectionId);
-    console.log(mainContent)
-    console.log(newContent)
     if (!mainContent || !newContent) return;
     mainContent.innerHTML = newContent.innerHTML;
+    loading?.classList.add('hidden');
   }
 
 }
@@ -199,10 +209,18 @@ class VariantSelector {
       if (findings) return variant;
     });
   }
+  
 
   updateURL(handle : string) {
     if (!this.currentVariant) return;
     window.history.replaceState({}, '', `${handle}?variant=${this.currentVariant.id}`);
+  }
+
+  updateMedia() {
+    if (!this.currentVariant) return;
+    if (!this.currentVariant.featured_media) return;
+
+    const mediaGalleries = document.querySelectorAll(``);
   }
 
   renderProductInfo(handle : string) {
