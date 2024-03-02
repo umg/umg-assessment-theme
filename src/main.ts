@@ -265,10 +265,19 @@ class CartDrawer {
     });
 
     const closeCartBtn: HTMLElement | null = document.querySelector('#cart-drawer .close-btn');
-    if (!closeCartBtn) return;
-    closeCartBtn.addEventListener('click', (event) => {
+    closeCartBtn?.addEventListener('click', (event) => {
       event.preventDefault();
       this.closeCart();
+    });
+    document.addEventListener('click', (event) => {
+      const cartDrawer: HTMLElement | null = document.querySelector('#cart-drawer');
+      if(!cartDrawer?.getAttribute('class')?.includes('hidden'))
+      {
+        if (event.target !== cartDrawer) {
+          this.closeCart();
+        }
+      }
+      
     });
   }
 
