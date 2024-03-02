@@ -29,18 +29,23 @@ class ProductInfo {
   inputQuantity() {
     const input = document.querySelector('#quantity-input') as HTMLInputElement;
     const changeEvent = new Event('change', { bubbles: true });
-    const btns : NodeListOf<HTMLButtonElement> =  document.querySelectorAll('.quantity__button')
+    const btns: NodeListOf<HTMLButtonElement> = document.querySelectorAll('.quantity__button');
     btns.forEach((button: HTMLButtonElement) =>
       button.addEventListener('click', function(event) {
         event.preventDefault();
         
         const previousValue = input.value;
-        const target = event.target as HTMLInputElement;
+        const target = event.currentTarget as HTMLInputElement;
         target.name === 'plus' ? input.stepUp() : input.stepDown();
-        if (previousValue !== input.value) input.dispatchEvent(changeEvent);
+        console.log(previousValue !== input.value, input.value)
+        if (previousValue !== input.value) {
+          input.dispatchEvent(changeEvent);  
+          input.setAttribute('value', input.value);  // This line ensures the HTML reflects the updated value
+        }
       })
     );
   }
+  
 
   removeCartItems() {
     const instance = this;
@@ -64,7 +69,7 @@ class ProductInfo {
 
   OnSubmitForm() {
     const instance = this;
-    const form: HTMLFormElement  | null = document.querySelector('#product_form');
+    const form = document.querySelector('form');
     if (!form) return;
     form.addEventListener('submit', function(evt) {
       evt.preventDefault();
@@ -77,6 +82,16 @@ class ProductInfo {
       submitButton.classList.add('loading');
 
       const formData = new FormData(form);
+      const quantityInput = document.getElementById('quantity-input') as HTMLInputElement;
+      if(quantityInput) {
+        formData.append('quantity', quantityInput.value);
+      }
+      const variantsSelectors : NodeListOf<HTMLInputElement> = document.querySelectorAll('.variants-picker input[type="radio"]:checked') ;
+      if(variantsSelectors.length > 0) {
+        variantsSelectors.forEach((variant) => {
+          formData.append(variant.name, variant.value); 
+        });
+      }
       const config = {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: `application/json` },
@@ -111,6 +126,13 @@ class ProductInfo {
         .catch((e) => {
           console.error(e);
         });
+
+    const cartCount = document.getElementById('cart-drawer-count');
+    if (cartCount){
+      //  update span element content with cart count (us Shopify's cart count javascript variable)
+      // console.log(window.theme)
+      // cartCount.innerHTML = cartCount.innerHTML + 1;
+    }
   }
 
 
