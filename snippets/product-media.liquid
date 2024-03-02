@@ -1,0 +1,30 @@
+{% case media.media_type %}
+  {% when 'image' %}
+    <div class="border rounded">
+      <div>
+        {{
+          media.preview_image
+          | image_url: width: 1946
+          | image_tag:
+            loading: lazy,
+            sizes: sizes,
+            widths: '246, 493, 600, 713, 823, 990, 1100, 1206, 1346, 1426, 1646, 1946'
+        }}
+      </div>
+    </div>
+
+  {% when 'external_video' %}
+    {{ media | external_video_tag: class: 'w-full h-80 object-cover' }}
+
+  {% when 'video' %}
+    {{ media | video_tag: controls: true, class: 'w-full h-full object-cover' }}
+
+  {% when 'model' %}
+    {{ media | model_viewer_tag }}
+
+  {% else %}
+    {{ media | media_tag }}
+
+  {% else %}
+
+{% endcase %}

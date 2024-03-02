@@ -1,0 +1,82 @@
+{%- liquid
+  assign variants_ids_arr = product.variants | map: 'id'
+  assign variants_available_arr = product.variants | map: 'available'
+  assign variants_option1_arr = product.variants | map: 'option1'
+  assign variants_option2_arr = product.variants | map: 'option2'
+  assign variants_option3_arr = product.variants | map: 'option3'
+
+  assign product_form_id = 'product-form-' | append: section.id
+-%}
+
+<div class="my-3 variants-picker">
+  {% unless product.has_only_default_variant %}
+    <div class="my-4">
+      {% for option in product.options_with_values %}
+        <fieldset class="mt-2">
+          <legend class="text-sm font-medium text-gray-900">{{ option.name }}</legend>
+          <div class="flex">
+            {%- for value in option.values -%}
+              {%- liquid
+                assign option_disabled = true
+
+                for option1_name in variants_option1_arr
+                  case option.position
+                    when 1
+                      if variants_option1_arr[forloop.index0] == value and variants_available_arr[forloop.index0]
+                        assign option_disabled = false
+                      endif
+                    when 2
+                      if option1_name == product.selected_or_first_available_variant.option1 and variants_option2_arr[forloop.index0] == value and variants_available_arr[forloop.index0]
+                        assign option_disabled = false
+                      endif
+                    when 3
+                      if option1_name == product.selected_or_first_available_variant.option1 and variants_option2_arr[forloop.index0] == product.selected_or_first_available_variant.option2 and variants_option3_arr[forloop.index0] == value and variants_available_arr[forloop.index0]
+                        assign option_disabled = false
+                      endif
+                  endcase
+                endfor
+              -%}
+              <label
+                class="
+                  flex mx-2 items-center justify-center rounded-md border py-2 px-3 text-sm font-medium sm:flex-1 cursor-pointer focus:outline-none hover:bg-black hover:text-white
+                  {% if option.selected_value == value %} bg-black text-white {% endif %}
+                "
+                for="{{ option.name }}-{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}-label"
+                {%- if option_disabled %}
+                  aria-disabled="true"
+                {% endif %}
+              >
+                <input
+                  type="radio"
+                  id="{{ option.name }}-{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}-label"
+                  data-product-url="{{ product.url }}"
+                  name="{{ option.name }}"
+                  value="{{ value | escape }}"
+                  form="{{ product_form_id }}"
+                  class="sr-only selector"
+                  {% if option_disabled %}
+                    aria-disabled="true"
+                  {% endif %}
+                  {% if option.selected_value == value %}
+                    selected="selected"
+                    checked
+                  {% endif %}
+                  aria-labelledby="{{ option.name }}-{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}-label"
+                >
+                <span id="{{ option.name }}-{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}-label">
+                  {{ value }}
+                </span>
+              </label>
+            {% endfor -%}
+          </div>
+        </fieldset>
+      {% endfor %}
+    </div>
+  {% endunless %}
+</div>
+
+<script>
+  window.product = {
+    variants: {{ product.variants | json }}
+  }
+</script>
